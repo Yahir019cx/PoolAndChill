@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "805053704651",
+    "project_id": "poolandchill-75f26",
+    "storage_bucket": "poolandchill-75f26.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:805053704651:android:ac2bb42e023d6c0b3cae4e",
+        "android_client_info": {
+          "package_name": "com.example.pool_and_chill"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAD3wjOWrfsXIyjuw3u1MMoLUymgkzzlQk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
