@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Text(
                     "Relájate, disfruta, reserva.",
                     style: GoogleFonts.oleoScript(
-                      color: Colors.white,
+                      color: const Color.fromARGB(255, 248, 248, 248),
                       fontSize: 16,
                     ),
                   ),
@@ -85,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: Colors.white,
+                        color: Color.fromARGB(255, 248, 248, 248),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black26,
@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         selectedBorderColor: Colors.transparent,
                         fillColor: Color.fromARGB(255, 65, 131, 143),
                         color: Colors.black,
-                        selectedColor: Colors.white,
+                        selectedColor:Color.fromARGB(255, 248, 248, 248),
                         constraints: BoxConstraints(minHeight: 50, minWidth: 120),
                         isSelected: [_selectedIndex == 0, _selectedIndex == 1],
                         onPressed: (index) {
