@@ -58,9 +58,9 @@ void _register() async {
 
     print("📩 Respuesta del backend: $response"); // Para verificar qué devuelve
 
-    if (response.containsKey("token")) {
+    if (response.containsKey("message")) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString("token", response["token"]);
+      await prefs.setString("message", response["message"]);
 
       // ✅ Limpiar los campos después del registro exitoso
       _nameController.clear();
