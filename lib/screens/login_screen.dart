@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'register_screen.dart'; // Importa la pantalla de registro
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/api_service.dart'; // Importamos el servicio de API
+import 'welcome_screen.dart'; // Importa la nueva pantalla de bienvenida
+
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -10,6 +14,65 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   int _selectedIndex = 0; // 0 para Login, 1 para Sign In
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final ApiService apiService = ApiService();
+  bool _isLoading = false;
+  void _showAlert(String title, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title, style: GoogleFonts.openSans(fontWeight: FontWeight.bold)),
+        content: Text(message, style: GoogleFonts.openSans()),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text("OK", style: GoogleFonts.openSans(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+  // Método para iniciar sesión
+void _login() async {
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    final response = await apiService.loginUser(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (response.containsKey("token")) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString("token", response["token"]);
+      await prefs.setString("userName", response['user']['name']); // Guardamos el nombre del usuario
+
+      // Navegar a la nueva pantalla de bienvenida
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => WelcomeScreen(userName: response['user']['name'])),
+      );
+    } else {
+      _showAlert("Error en el login", response['message'] ?? "Credenciales incorrectas");
+    }
+  } catch (e) {
+    _showAlert("Error en el login", "Hubo un problema: $e");
+  }
+
+  setState(() {
+    _isLoading = false;
+  });
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -127,68 +190,70 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   SizedBox(height: 50),
 
-                  // Campo de Correo Electrónico
-                  Transform.translate(
-                    offset: Offset(0, MediaQuery.of(context).size.height * 0.0),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 40),
-                      child: TextField(
-                        style: GoogleFonts.openSans(fontSize: 16, color: Colors.black87),
-                        decoration: InputDecoration(
-                          labelText: 'Correo electrónico',
-                          labelStyle: GoogleFonts.openSans(
-                            fontSize: 14,
-                            color: Colors.grey.shade700,
+                // Campo de Correo Electrónico
+                Transform.translate(
+                  offset: Offset(0, MediaQuery.of(context).size.height * 0.0),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    child: TextField(
+                      controller: _emailController, // ← Agregado
+                      style: GoogleFonts.openSans(fontSize: 16, color: Colors.black87),
+                      decoration: InputDecoration(
+                        labelText: 'Correo electrónico',
+                        labelStyle: GoogleFonts.openSans(
+                          fontSize: 14,
+                          color: Colors.grey.shade700,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 5),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color.fromARGB(255, 65, 131, 143),
                           ),
-                          contentPadding: EdgeInsets.symmetric(vertical: 5),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color.fromARGB(255, 65, 131, 143),
-                            ),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color.fromARGB(255, 65, 131, 143),
-                              width: 2,
-                            ),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color.fromARGB(255, 65, 131, 143),
+                            width: 2,
                           ),
                         ),
                       ),
                     ),
                   ),
+                ),
 
-                  SizedBox(height: 15),
+                SizedBox(height: 15),
 
-                  // Campo de Contraseña
-                  Transform.translate(
-                    offset: Offset(0, MediaQuery.of(context).size.height * 0.0),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 40),
-                      child: TextField(
-                        obscureText: true,
-                        style: GoogleFonts.openSans(fontSize: 16, color: Colors.black87),
-                        decoration: InputDecoration(
-                          labelText: 'Contraseña',
-                          labelStyle: GoogleFonts.openSans(
-                            fontSize: 14,
-                            color: Colors.grey.shade700,
+                // Campo de Contraseña
+                Transform.translate(
+                  offset: Offset(0, MediaQuery.of(context).size.height * 0.0),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    child: TextField(
+                      controller: _passwordController, // ← Agregado
+                      obscureText: true,
+                      style: GoogleFonts.openSans(fontSize: 16, color: Colors.black87),
+                      decoration: InputDecoration(
+                        labelText: 'Contraseña',
+                        labelStyle: GoogleFonts.openSans(
+                          fontSize: 14,
+                          color: Colors.grey.shade700,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 5),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color.fromARGB(255, 65, 131, 143),
                           ),
-                          contentPadding: EdgeInsets.symmetric(vertical: 5),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color.fromARGB(255, 65, 131, 143),
-                            ),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color.fromARGB(255, 65, 131, 143),
-                              width: 2,
-                            ),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color.fromARGB(255, 65, 131, 143),
+                            width: 2,
                           ),
                         ),
                       ),
                     ),
                   ),
+                ),
 
                   SizedBox(height: 25),
 
@@ -196,9 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Transform.translate(
                     offset: Offset(0, MediaQuery.of(context).size.height * 0.05),
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Acción de login
-                      },
+                      onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15),
@@ -210,7 +273,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      child: Text(
+                      child: _isLoading
+                    ? CircularProgressIndicator()
+                    : Text(
                         'Log In',
                         style: GoogleFonts.lilitaOne(
                           fontSize: 16,

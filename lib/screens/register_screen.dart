@@ -1,24 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_screen.dart'; // Importamos la pantalla de login
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/api_service.dart'; // Importamos el servicio de API
 
 class RegisterScreen extends StatefulWidget {
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
 
+  
+
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _termsAccepted = false;
   bool _privacyAccepted = false;
-
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _surnameController = TextEditingController();
-  TextEditingController _birthDateController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
-
-  bool _isFormValid = false;
+  // Variables para el registro
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _surnameController = TextEditingController();
+  final TextEditingController _birthDateController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final ApiService apiService = ApiService();
+  bool _isLoading = false;
+  bool _isFormValid = false; // Mantenemos esta variable para la validación
 
   // Función para verificar si todos los campos están llenos
   void _validateForm() {
@@ -32,6 +37,110 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _privacyAccepted;
     });
   }
+void _register() async {
+  if (!_termsAccepted || !_privacyAccepted) {
+    _showAlert("Error", "Debes aceptar los términos y la política de privacidad.");
+    return;
+  }
+
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    final response = await apiService.registerUser(
+      _nameController.text.trim(),
+      _surnameController.text.trim(),
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+      _birthDateController.text.trim(),
+    );
+
+    print("📩 Respuesta del backend: $response"); // Para verificar qué devuelve
+
+    if (response.containsKey("token")) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString("token", response["token"]);
+
+      // ✅ Limpiar los campos después del registro exitoso
+      _nameController.clear();
+      _surnameController.clear();
+      _emailController.clear();
+      _passwordController.clear();
+      _birthDateController.clear();
+
+      // ✅ Mostrar mensaje de éxito correctamente
+      if (context.mounted) {
+        await _showSuccessAlert("Registro exitoso", "Usuario registrado con éxito.");
+      }
+
+      // ✅ Redirigir al login después de cerrar el alert
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      }
+    } else {
+      String errorMessage = response['error'] ?? response['message'] ?? "Hubo un problema inesperado.";
+      print("⚠ Respuesta inesperada del backend: $response");
+      if (context.mounted) {
+        _showAlert("Error en el registro", errorMessage);
+      }
+    }
+  } catch (e) {
+    print("❌ Error en la conexión: $e");
+    if (context.mounted) {
+      _showAlert("Error en el registro", "Hubo un problema de conexión con el servidor.");
+    }
+  }
+
+  setState(() {
+    _isLoading = false;
+  });
+}
+
+void _showAlert(String title, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title, style: GoogleFonts.openSans(fontWeight: FontWeight.bold, color: Colors.red)),
+        content: Text(message, style: GoogleFonts.openSans()),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text("OK", style: GoogleFonts.openSans(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      );
+    },
+  );
+}
+Future<void> _showSuccessAlert(String title, String message) async {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title, style: GoogleFonts.openSans(fontWeight: FontWeight.bold, color: Colors.green)),
+        content: Text(message, style: GoogleFonts.openSans()),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text("OK", style: GoogleFonts.openSans(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+
 
   // Función para seleccionar la fecha de nacimiento con un calendario
   Future<void> _selectDate(BuildContext context) async {
@@ -173,13 +282,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     // Botón Aceptar y continuar
                     Center(
                       child: ElevatedButton(
-                        onPressed: _isFormValid
-                            ? () {
-                                if (_formKey.currentState!.validate()) {
-                                  // Lógica de registro
-                                }
-                              }
-                            : null,
+                        onPressed: _isLoading ? null : _register,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           side: BorderSide(color: Color(0xFF2E5E66)),
