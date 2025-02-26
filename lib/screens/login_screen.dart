@@ -140,7 +140,7 @@ void _login() async {
               ),
               child: Column(
                 children: [
-                  SizedBox(height: 70), // Espacio superior
+                  SizedBox(height: 50), // Espacio superior
 
                   // Botón de alternancia (Log In / Sign In)
                   Transform.translate(
@@ -285,7 +285,7 @@ void _login() async {
                     ),
                   ),
 
-                    SizedBox(height: 80),
+                    SizedBox(height: 60),
 
                   // Separador verde
                   Transform.translate(
@@ -302,7 +302,7 @@ void _login() async {
                     ),
                   ),
 
-                  SizedBox(height: 20),
+                  SizedBox(height: 15),
 
                   // Botones de redes sociales
                   Transform.translate(
